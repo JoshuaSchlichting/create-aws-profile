@@ -22,3 +22,9 @@ BIN_FILENAME=bin/$APP_NAME\_$(echo $OS)_$(uname -m)
 echo FILENAME = $BIN_FILENAME
 go build -o $BIN_FILENAME .
 chmod +x $BIN_FILENAME
+
+if [ $# -gt 0 ];then
+    if [ $1 = "--install" ]; then
+        cp $BIN_FILENAME /usr/local/bin/$APP_NAME
+    fi
+fi
