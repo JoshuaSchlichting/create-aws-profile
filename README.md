@@ -1,4 +1,4 @@
-# assume-role
+# create-aws-profile
 `create-aws-profile` is a command line tool designed with the intent to have the output of `aws sts assume-role` piped out to it. It takes this output and creates a new set of AWS credentials in `~/.aws/credentials` under the profile name specified with the `--profile` flag. More instructions follow below.
 
 
