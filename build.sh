@@ -1,4 +1,4 @@
-APP_NAME=assume-role
+APP_NAME=create-aws-profile
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     OS=linux
