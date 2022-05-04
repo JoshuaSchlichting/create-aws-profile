@@ -1,4 +1,4 @@
-module assume-role
+module create-aws-profile
 
 go 1.18
 
