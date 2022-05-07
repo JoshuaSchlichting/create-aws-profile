@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"log"
 	"reflect"
 	"strings"
 	"testing"
@@ -40,7 +39,6 @@ func TestRemoveProfile(t *testing.T) {
 	}
 
 	newCredentials := removeCredentials("test_profile2", testFileContent)
-	log.Println(newCredentials)
 	if !reflect.DeepEqual(newCredentials, expectedFileContent) {
 		t.Errorf("Expected %v, got %v", expectedFileContent, newCredentials)
 	}
