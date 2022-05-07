@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -14,18 +15,15 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-var credentialsFilePath = path.Join(getHomeDir(), ".aws", "credentials")
-
-type credentials struct {
-	AccessKeyId     string
-	SecretAccessKey string
-	SessionToken    string
-	Expiration      string
-}
+var defaultCredentialsFilePath = path.Join(getHomeDir(), ".aws", "credentials")
 
 func main() {
 	profile := flag.String("profile", "", "Name of the profile to store in ~/.aws/credentials")
+	credentialsFilePath := flag.String("credentials-file", "", "Path to the credentials file")
 	flag.Parse()
+	if *credentialsFilePath == "" {
+		credentialsFilePath = &defaultCredentialsFilePath
+	}
 	if *profile == "" {
 		log.Fatal("--profile is required. See --help")
 	}
@@ -35,20 +33,21 @@ func main() {
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
 		creds := getCredentialsFromStdIn()
 
-		fileContent, err := readLines(credentialsFilePath)
+		fileContent, err := readLines(*credentialsFilePath)
 		handleErr(err)
 
 		if fileContainsProfile(fileContent, *profile) {
 			log.Printf("Profile '%s' already exists. Removing it...", *profile)
 			newCredentialsPayloud := removeCredentials(*profile, fileContent)
-			writeLines(newCredentialsPayloud, credentialsFilePath)
+			writeLines(newCredentialsPayloud, *credentialsFilePath)
 		}
 
-		f, err := os.OpenFile(credentialsFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(*credentialsFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		handleErr(err)
 		defer f.Close()
+		bufio.NewWriter(f)
 		appendCredentials(creds, *profile, f)
-		log.Printf("Credentials stored in %s. Verify this via 'cat %s'", credentialsFilePath, credentialsFilePath)
+		log.Printf("Credentials stored in %s. Verify this via 'cat %s'", *credentialsFilePath, *credentialsFilePath)
 	} else {
 		log.Fatal("No input on STDIN")
 	}
@@ -105,11 +104,11 @@ func getCredentialsFromStdIn() credentials {
 	return credentials
 }
 
-func appendCredentials(credentials credentials, profile string, file *os.File) {
-	file.WriteString(fmt.Sprintf("\n[%s]\n", profile))
-	file.WriteString(fmt.Sprintf("aws_access_key_id = %s\n", credentials.AccessKeyId))
-	file.WriteString(fmt.Sprintf("aws_secret_access_key = %s\n", credentials.SecretAccessKey))
-	file.WriteString(fmt.Sprintf("aws_session_token = %s\n", credentials.SessionToken))
+func appendCredentials(credentials credentials, profile string, buffer io.Writer) {
+	fmt.Fprintf(buffer, "\n[%s]\n", profile)
+	fmt.Fprintf(buffer, "aws_access_key_id = %s\n", credentials.AccessKeyId)
+	fmt.Fprintf(buffer, "aws_secret_access_key = %s\n", credentials.SecretAccessKey)
+	fmt.Fprintf(buffer, "aws_session_token = %s\n", credentials.SessionToken)
 }
 
 func getHomeDir() string {
