@@ -9,9 +9,12 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 )
+
+var credentialsFilePath = path.Join(getHomeDir(), ".aws", "credentials")
 
 type credentials struct {
 	AccessKeyId     string
@@ -31,7 +34,16 @@ func main() {
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
 		creds := getCredentialsFromStdIn()
-		credentialsFilePath := path.Join(getHomeDir(), ".aws", "credentials")
+
+		fileContent, err := readLines(credentialsFilePath)
+		handleErr(err)
+
+		if fileContainsProfile(fileContent, *profile) {
+			log.Printf("Profile '%s' already exists. Removing it...", *profile)
+			newCredentialsPayloud := removeCredentials(*profile, fileContent)
+			writeLines(newCredentialsPayloud, credentialsFilePath)
+		}
+
 		f, err := os.OpenFile(credentialsFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		handleErr(err)
 		defer f.Close()
@@ -40,6 +52,36 @@ func main() {
 	} else {
 		log.Fatal("No input on STDIN")
 	}
+}
+
+func removeCredentials(profile string, payload []string) []string {
+
+	var lines []string
+	var indexInProfile bool = false
+	for _, line := range payload {
+		if strings.HasPrefix(line, "[") && indexInProfile {
+			indexInProfile = false
+		}
+		if !indexInProfile {
+			if strings.HasPrefix(line, fmt.Sprintf("[%s]", profile)) {
+				indexInProfile = true
+				continue
+			} else {
+				lines = append(lines, line)
+			}
+		}
+	}
+	return lines
+}
+
+func fileContainsProfile(lines []string, profile string) bool {
+	// search for profile
+	for _, line := range lines {
+		if strings.HasPrefix(line, fmt.Sprintf("[%s]", profile)) {
+			return true
+		}
+	}
+	return false
 }
 
 func getCredentialsFromStdIn() credentials {
@@ -85,4 +127,34 @@ func handleErr(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func readLines(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
+}
+
+// writeLines writes the lines to the given file.
+func writeLines(lines []string, path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+	for _, line := range lines {
+		fmt.Fprintln(w, line)
+	}
+	return w.Flush()
 }
