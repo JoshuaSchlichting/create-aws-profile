@@ -25,6 +25,9 @@ chmod +x $BIN_FILENAME
 
 if [ $# -gt 0 ];then
     if [ $1 = "--install" ]; then
-        cp $BIN_FILENAME /usr/local/bin/$APP_NAME
+        INSTALL_FILEPATH=/usr/local/bin/$APP_NAME
+        echo "Installing to $INSTALL_FILEPATH"
+        cp $BIN_FILENAME $INSTALL_FILEPATH
+        echo "Installation complete!"
     fi
 fi
