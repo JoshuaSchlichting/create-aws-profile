@@ -9,6 +9,7 @@ Creates `bin/create-aws-profile_<os>_<arch>`.
 
 `./build.sh`
 ### Build and Install
+Adding the `--install` flag, as shown below, will install the binary to `/usr/local/bin`.
 `./build.sh --install`
 
 ### How to use
