@@ -38,7 +38,7 @@ func TestRemoveProfile(t *testing.T) {
 		"aws_session_token = test_session_token3",
 	}
 
-	newCredentials := removeCredentials("test_profile2", testFileContent)
+	newCredentials := removeProfile("test_profile2", testFileContent)
 	if !reflect.DeepEqual(newCredentials, expectedFileContent) {
 		t.Errorf("Expected %v, got %v", expectedFileContent, newCredentials)
 	}
@@ -60,7 +60,7 @@ func TestFileContainsProfile(t *testing.T) {
 	}
 	expected := true
 
-	actual := fileContainsProfile(strings.Split(buff.String(), "\n"), "test_profile2")
+	actual := fileContainsProfile("test_profile2", strings.Split(buff.String(), "\n"))
 	if expected != actual {
 		t.Errorf("Expected %v, got %v", expected, actual)
 	}
@@ -82,7 +82,7 @@ func TestAddProfile(t *testing.T) {
 	appendCredentials(credentials, profile, w)
 	w.Flush()
 
-	if !fileContainsProfile(strings.Split(buffer.String(), "\n"), profile) {
+	if !fileContainsProfile(profile, strings.Split(buffer.String(), "\n")) {
 		t.Errorf("Expected to see %v, got %v", profile, buffer.String())
 	}
 }

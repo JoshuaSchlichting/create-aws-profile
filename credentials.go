@@ -1,6 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"os"
+
+	"github.com/mitchellh/mapstructure"
+)
 
 type credentials struct {
 	AccessKeyId     string
@@ -9,16 +18,30 @@ type credentials struct {
 	Expiration      string
 }
 
-func (c credentials) String() string {
-	fmtStrings := []string{
-		"aws_access_key_id = %s\n",
-		"aws_secret_access_key = %s\n",
-		"aws_session_token = %s\n",
-	}
-	var stringVal string
-	stringVal += fmt.Sprintf(fmtStrings[0], c.AccessKeyId)
-	stringVal += fmt.Sprintf(fmtStrings[1], c.SecretAccessKey)
-	stringVal += fmt.Sprintf(fmtStrings[2], c.SessionToken)
+func getCredentialsFromStdIn() credentials {
+	var stdin []byte
 
-	return stringVal
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		stdin = append(stdin, scanner.Bytes()...)
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	m := make(map[string]interface{})
+	err := json.Unmarshal(stdin, &m)
+	handleErr(err)
+
+	var credentials credentials
+	err = mapstructure.Decode(m["Credentials"], &credentials)
+	handleErr(err)
+	return credentials
+}
+
+func appendCredentials(credentials credentials, profile string, buffer io.Writer) {
+	fmt.Fprintf(buffer, "[%s]\n", profile)
+	fmt.Fprintf(buffer, "aws_access_key_id = %s\n", credentials.AccessKeyId)
+	fmt.Fprintf(buffer, "aws_secret_access_key = %s\n", credentials.SecretAccessKey)
+	fmt.Fprintf(buffer, "aws_session_token = %s\n", credentials.SessionToken)
 }
