@@ -46,7 +46,13 @@ func main() {
 		handleErr(err)
 		defer f.Close()
 		bufio.NewWriter(f)
+
 		appendCredentials(creds, *profile, f)
+
+		completedFileContents, err := readLines(*credentialsFilePath)
+		handleErr(err)
+		formattedLines := formatCredentials(completedFileContents)
+		writeLines(formattedLines, *credentialsFilePath)
 		log.Printf("Credentials stored in %s. Verify this via 'cat %s'", *credentialsFilePath, *credentialsFilePath)
 	} else {
 		log.Fatal("No input on STDIN")
@@ -105,7 +111,7 @@ func getCredentialsFromStdIn() credentials {
 }
 
 func appendCredentials(credentials credentials, profile string, buffer io.Writer) {
-	fmt.Fprintf(buffer, "\n[%s]\n", profile)
+	fmt.Fprintf(buffer, "[%s]\n", profile)
 	fmt.Fprintf(buffer, "aws_access_key_id = %s\n", credentials.AccessKeyId)
 	fmt.Fprintf(buffer, "aws_secret_access_key = %s\n", credentials.SecretAccessKey)
 	fmt.Fprintf(buffer, "aws_session_token = %s\n", credentials.SessionToken)
@@ -156,4 +162,25 @@ func writeLines(lines []string, path string) error {
 		fmt.Fprintln(w, line)
 	}
 	return w.Flush()
+}
+
+func formatCredentials(lines []string) (formattedLines []string) {
+	firstProfileIsLoaded := false
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		if !firstProfileIsLoaded {
+			if strings.HasPrefix(line, "[") {
+				firstProfileIsLoaded = true
+				formattedLines = append(formattedLines, line)
+				continue
+			}
+		}
+		if firstProfileIsLoaded && strings.HasPrefix(line, "[") {
+			formattedLines = append(formattedLines, "")
+		}
+		formattedLines = append(formattedLines, line)
+	}
+	return
 }
