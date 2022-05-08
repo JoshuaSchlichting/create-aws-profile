@@ -86,3 +86,27 @@ func TestAddProfile(t *testing.T) {
 		t.Errorf("Expected to see %v, got %v", profile, buffer.String())
 	}
 }
+
+func TestFormatCredentials(t *testing.T) {
+	uglyCredentials := []string{
+		"[test_profile]",
+		"aws_access_key_id = test_access_key_id",
+		"aws_secret_access_key = test_secret_access_key",
+		"aws_session_token = test_session_token",
+		"", "", "", "",
+		"[test_profile2]",
+		"aws_access_key_id = test_access_key_id2",
+		"aws_secret_access_key = test_secret_access_key2",
+		"aws_session_token = test_session_token2",
+		"", "", "", "",
+		"[test_profile3]",
+		"aws_access_key_id = test_access_key_id3",
+		"aws_secret_access_key = test_secret_access_key3",
+		"aws_session_token = test_session_token3",
+	}
+	formattedCredentials := formatCredentials(uglyCredentials)
+
+	if !reflect.DeepEqual(testFileContent, formattedCredentials) {
+		t.Errorf("Expected %v, got %v", testFileContent, formattedCredentials)
+	}
+}
