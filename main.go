@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -25,7 +26,14 @@ func main() {
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
 		creds := getCredentialsFromStdIn()
-
+		// create file if it does not exist
+		if _, err := os.Stat(*credentialsFilePath); os.IsNotExist(err) {
+			log.Printf("Creating credentials file '%s'", *credentialsFilePath)
+			err := os.MkdirAll(path.Dir(*credentialsFilePath), 0700)
+			handleErr(err)
+			err = ioutil.WriteFile(*credentialsFilePath, []byte{}, 0600)
+			handleErr(err)
+		}
 		fileContent, err := readLines(*credentialsFilePath)
 		handleErr(err)
 
