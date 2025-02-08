@@ -9,22 +9,19 @@ The above command will create or modify the `~/.aws/credentials` file and add th
 ## How to use
 Call the standard AWS CLI and pipe the output into `create-aws-profile`. Be sure to add a profile name with `--profile`. This is the profile name that you'll need to use to access the AWS CLI.
 
+`aws sts assume-role --role-arn arn:aws:iam::<account>:role/OrganizationAccountAccessRole --role-session-name build-cicd | create-aws-profile --profile <local role name>`
+Next, you can specify the `AWS_PROFILE` you want your command to use, as shown below:
+`AWS_PROFILE=<local role name> aws s3 ls`
 > NOTE: Existing profiles with the same `--profile` name will be overwritten.
 
 ## Install from GitHub
 ### macOS
 `curl -o "/usr/local/bin/create-aws-profile" -L "https://github.com/JoshuaSchlichting/create-aws-profile/releases/download/v0.1.1/create-aws-profile_macos_x86_64" && chmod +x "/usr/local/bin/create-aws-profile/create-aws-profile"`
 
-## Building
+### Building from source
 create `bin/create-aws-profile_<os>_<arch>` by executing `./build.sh`
-
-### Install
-Adding the `--install` flag, as shown below, will install the binary to `/usr/local/bin`.
+> Adding the `--install` flag, as shown below, will install the binary to `/usr/local/bin`.
 `./build.sh --install`
 
 
 
-`aws sts assume-role --role-arn arn:aws:iam::<account>:role/OrganizationAccountAccessRole --role-session-name build-cicd | create-aws-profile --profile <local role name>`
-
-Next, you can specify the `AWS_PROFILE` you want your command to use, as shown below:
-`AWS_PROFILE=<local role name> aws s3 ls`
