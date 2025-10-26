@@ -17,6 +17,8 @@ Next, you can specify the `AWS_PROFILE` you want your command to use, as shown b
 ## Install from GitHub
 ### macOS
 `curl -o "/usr/local/bin/create-aws-profile" -L "https://github.com/JoshuaSchlichting/create-aws-profile/releases/download/v0.1.1/create-aws-profile_macos_x86_64" && chmod +x "/usr/local/bin/create-aws-profile/create-aws-profile"`
+### Linux
+`curl -o ~/.local/bin/create-aws-profile -L "https://github.com/JoshuaSchlichting/create-aws-profile/releases/download/v0.1.1/create-aws-profile_linux_amd64" && chmod +x ~/.local/bin/create-aws-profile`
 
 ### Building from source
 create `bin/create-aws-profile_<os>_<arch>` by executing `./build.sh`
